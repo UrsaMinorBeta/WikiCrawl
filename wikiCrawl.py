@@ -1,5 +1,6 @@
 from urllib.request import urlopen
 import re
+import copy
 
 def crawl(verbose=False):
     # firstLink = "/Special:Random"
@@ -59,11 +60,12 @@ def getLinks(article, noParantheses, includeLI):
         # delete all content in parentheses with preceding [ |>] or trailing [ |,|<]
         if noParantheses: code = re.sub(r'(?<=[ |>]\().+?(?=\)[ |<|,])', '', code)
         code = re.sub(r'(?<=<p>)<span.+?(?=</span>)', '', code)
+        code = re.sub(r'(?<=<div class="NavContent">).+?(?=</div>)', '', code, flags=re.DOTALL)
         code = re.sub(r'<td.+?(?=</td>)', '', code, flags=re.DOTALL)
         # first paragraph
-        p = re.compile('(?<=<p>).+')
+        p = re.compile('(?<=<p>).+?(?=</p>)', flags=re.DOTALL)
         # first list element
-        li = re.compile('(?<=<li>).+')
+        li = re.compile('(?<=<li>).+(?=</li>)')
         # match links and titles only
         link = re.compile('(?<=href\="\/wiki)([^:]+?)" title="(.*?)(?=".*</a>)')
         # go through article
@@ -104,21 +106,23 @@ def BFS(start, stop):
     for link in links:
         if link[0] == stop:
             print("Path found:")
-            print(link)
             return link
-        paths.append([link])
+        paths.append([(start, start), link])
+    # bis hierher richtig
     while(len(paths) != 0):
         path = paths.pop(0)
         links = getLinks(path[-1][0], True, False)
         for link in links:
-            path_tmp = path
+            path.append(link)
+            paths.append(copy.deepcopy(path))
+            path.pop(-1)
             if link[0] == stop:
                 print("Path found:")
-                # path = path.append(link)
-                # return path_tmp.append(link)
+                path = []
+                for article in paths[-1]:
+                    path.append(article[1])
                 return path
-            paths.append(path_tmp.append(link))
 
 if __name__ == "__main__":
     # crawl(verbose=True)
-    (BFS("/Adolf_Hitler", "/Alliierter_Kontrollrat"))
+    print(BFS("/Drillich", "/Billerbeck"))
