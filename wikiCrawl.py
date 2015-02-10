@@ -54,7 +54,7 @@ def getLinks(article, noParantheses, includeLI):
     noParantheses is boolean and decides whether or not to cut paras
     includeLI is boolean and decides whether or not to include <li>"""
     while (True):
-        print(article)
+        # print(article)
         url = "http://de.wikipedia.org/wiki" + article
         code = urlopen(url).read().decode("utf-8")
         # delete all content in parentheses with preceding [ |>] or trailing [ |,|<]
@@ -67,7 +67,7 @@ def getLinks(article, noParantheses, includeLI):
         # first list element
         li = re.compile('(?<=<li>).+(?=</li>)')
         # match links and titles only
-        link = re.compile('(?<=href\="\/wiki)([^:]+?)" title="(.*?)(?=".*</a>)')
+        link = re.compile('(?<=href\="\/wiki)([^:]+?)" title="?(.*?)(?=".*</a>)')
         # go through article
         listOfParagraphs = p.findall(code)
         listOfListElements = li.findall(code)
@@ -104,16 +104,22 @@ def BFS(start, stop):
     links = getLinks(start, True, False)
     paths = []
     for link in links:
+        paths.append([(start, start), link])
         if link[0] == stop:
             print("Path found:")
-            return link
-        paths.append([(start, start), link])
+            path = []
+            for article in paths[-1]:
+                path.append(article[1])
+            return path
     # bis hierher richtig
     while(len(paths) != 0):
         path = paths.pop(0)
         links = getLinks(path[-1][0], True, False)
         for link in links:
             path.append(link)
+            #for el in path:
+            #    print(el[1], end=' -> ')
+            #print()
             paths.append(copy.deepcopy(path))
             path.pop(-1)
             if link[0] == stop:
@@ -125,4 +131,4 @@ def BFS(start, stop):
 
 if __name__ == "__main__":
     # crawl(verbose=True)
-    print(BFS("/Drillich", "/Billerbeck"))
+    print(BFS("/Stern", "/Pfeffer"))
